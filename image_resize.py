@@ -11,7 +11,6 @@ def get_args():
     parser.add_argument('-H', '--height', help='result height', type=int)
     parser.add_argument('-s', '--scale', help='resize coefficient', type=float)
     parser.add_argument('-o', '--output', help='output directory', type=str)
-    # return parser.parse_args(['-p',  r'C:\Temp\1217597582_00-pink_floyd.jpg', '-s', '0.5'])
     return parser.parse_args()
 
 
