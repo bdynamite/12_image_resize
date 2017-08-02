@@ -18,58 +18,65 @@ def get_img(path):
     return Image.open(path)
 
 
-def get_resize_method(args):
-    if args.scale and (args.height or args.width):
-        raise ValueError('Either scale or width/height must be specified!')
-    elif args.scale:
+def get_resize_method(params):
+    if params.scale and (params.height or params.width):
+        raise_exception(ValueError, 'Either scale or width/height must be specified!')
+    elif params.scale:
         return resize_by_scale
-    elif args.height and args.width:
-        return resize
-    elif args.height:
+    elif params.height and params.width:
+        return resize_by_height_and_width
+    elif params.height:
         return resize_by_height
-    elif args.width:
+    elif params.width:
         return resize_by_width
     else:
-        raise ValueError('Scale or width/height must be specified!')
+        raise_exception(ValueError, 'Scale or width/height must be specified!')
 
 
-def resize_by_scale(img, args):
-    return img.resize([int(x * args.scale) for x in img.size])
+def raise_exception(exception, text):
+    raise exception(text)
 
 
-def resize(img, args):
-    if img.size[0] / img.size[1] != args.width / args.height:
-        print('the proportions of the picture will be changed!')
-    return img.resize((args.width, args.height))
+def print_msg(msg):
+    print(msg)
 
 
-def resize_by_height(img, args):
-    coef = args.height / img.size[1]
-    return img.resize((int(img.size[0] * coef), args.height))
+def resize_by_scale(img, params):
+    return img.resize([int(x * params.scale) for x in img.size])
 
 
-def resize_by_width(img, args):
-    coef = args.width / img.size[0]
-    return img.resize((args.width, int(img.size[1] * coef)))
+def resize_by_height_and_width(img, params):
+    if img.size[0] / img.size[1] != params.width / params.height:
+        print_msg('the proportions of the picture will be changed!')
+    return img.resize((params.width, params.height))
 
 
-def save_img(img, args):
-    if args.output:
-        dir = args.output
+def resize_by_height(img, params):
+    coef = params.height / img.size[1]
+    return img.resize((int(img.size[0] * coef), params.height))
+
+
+def resize_by_width(img, params):
+    coef = params.width / img.size[0]
+    return img.resize((params.width, int(img.size[1] * coef)))
+
+
+def save_img(img, params):
+    if params.output:
+        dir = params.output
     else:
-        dir = os.path.dirname(args.path)
-    prev_img_name = os.path.split(args.path)[1]
+        dir = os.path.dirname(params.path)
+    prev_img_name = os.path.split(params.path)[1]
     image_name = '{}__{}.{}'.format(prev_img_name.split('.')[0],
                                     'x'.join(list(map(str, img.size))),
                                     prev_img_name.split('.')[1])
     image_path = os.path.join(dir, image_name)
     img.save(image_path)
-    print('new image successfully saved at')
-    print(image_path)
+    print_msg('\n'.join(['new image successfully saved at', image_path]))
 
 if __name__ == '__main__':
-    args = get_args()
-    resize_method = get_resize_method(args)
-    img = get_img(args.path)
-    new_img = resize_method(img, args)
-    save_img(new_img, args)
+    params = get_args()
+    resize_method = get_resize_method(params)
+    img = get_img(params.path)
+    new_img = resize_method(img, params)
+    save_img(new_img, params)
