@@ -14,20 +14,16 @@ def get_args():
     return parser.parse_args()
 
 
-def get_img(path):
-    return Image.open(path)
-
-
-def get_resize_method(params):
-    if params.scale and (params.height or params.width):
+def get_resize_method(options):
+    if options.scale and (options.height or options.width):
         raise_exception(ValueError, 'Either scale or width/height must be specified!')
-    elif params.scale:
+    elif options.scale:
         return resize_by_scale
-    elif params.height and params.width:
+    elif options.height and options.width:
         return resize_by_height_and_width
-    elif params.height:
+    elif options.height:
         return resize_by_height
-    elif params.width:
+    elif options.width:
         return resize_by_width
     else:
         raise_exception(ValueError, 'Scale or width/height must be specified!')
@@ -37,46 +33,42 @@ def raise_exception(exception, text):
     raise exception(text)
 
 
-def print_msg(msg):
-    print(msg)
+def resize_by_scale(image, options):
+    return image.resize([int(x * options.scale) for x in image.size])
 
 
-def resize_by_scale(img, params):
-    return img.resize([int(x * params.scale) for x in img.size])
+def resize_by_height_and_width(image, options):
+    return image.resize((options.width, options.height))
 
 
-def resize_by_height_and_width(img, params):
-    if img.size[0] / img.size[1] != params.width / params.height:
-        print_msg('the proportions of the picture will be changed!')
-    return img.resize((params.width, params.height))
+def resize_by_height(image, options):
+    coef = options.height / image.size[1]
+    return image.resize((int(image.size[0] * coef), options.height))
 
 
-def resize_by_height(img, params):
-    coef = params.height / img.size[1]
-    return img.resize((int(img.size[0] * coef), params.height))
+def resize_by_width(image, options):
+    coefficient = options.width / image.size[0]
+    return image.resize((options.width, int(image.size[1] * coefficient)))
 
 
-def resize_by_width(img, params):
-    coef = params.width / img.size[0]
-    return img.resize((params.width, int(img.size[1] * coef)))
-
-
-def save_img(img, params):
-    if params.output:
-        dir = params.output
+def get_new_img_path(options):
+    if options.output:
+        folder = options.output
     else:
-        dir = os.path.dirname(params.path)
-    prev_img_name = os.path.split(params.path)[1]
+        folder = os.path.dirname(options.path)
+    prev_img_name = os.path.split(options.path)[1]
     image_name = '{}__{}.{}'.format(prev_img_name.split('.')[0],
                                     'x'.join(list(map(str, img.size))),
                                     prev_img_name.split('.')[1])
-    image_path = os.path.join(dir, image_name)
-    img.save(image_path)
-    print_msg('\n'.join(['new image successfully saved at', image_path]))
+    return os.path.join(folder, image_name)
 
 if __name__ == '__main__':
     params = get_args()
     resize_method = get_resize_method(params)
-    img = get_img(params.path)
+    img = Image.open(params.path)
     new_img = resize_method(img, params)
-    save_img(new_img, params)
+    if img.size[0] / img.size[1] != new_img.size[0] / new_img.size[1]:
+        print('the proportions of the picture will be changed!')
+    new_img_path = get_new_img_path(params)
+    new_img.save(new_img_path)
+    print('\n'.join(['new image successfully saved at', new_img_path]))
