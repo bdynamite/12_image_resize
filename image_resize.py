@@ -42,8 +42,8 @@ def resize_by_height_and_width(image, options):
 
 
 def resize_by_height(image, options):
-    coef = options.height / image.size[1]
-    return image.resize((int(image.size[0] * coef), options.height))
+    coefficient = options.height / image.size[1]
+    return image.resize((int(image.size[0] * coefficient), options.height))
 
 
 def resize_by_width(image, options):
